@@ -12,9 +12,21 @@ namespace WinFormsActiveTango
 {
     public partial class BlockScreenForm : Form
     {
-        public BlockScreenForm()
+        public DateTime BlockTime { get; private set; }
+
+        public BlockScreenForm(int minutesUntilBlock)
         {
             InitializeComponent();
+            ResetBlockTime(minutesUntilBlock);
+
+            var timer = new System.Windows.Forms.Timer { Interval = minutesUntilBlock * 60 * 1000 };
+            timer.Tick += (sender, e) => BlockSecondDisplay();
+            timer.Start();
+        }
+
+        public void ResetBlockTime(int minutesUntilBlock)
+        {
+            BlockTime = DateTime.Now.AddMinutes(minutesUntilBlock);
         }
 
         public void BlockSecondDisplay()

@@ -10,7 +10,9 @@ namespace WinFormsActiveTango
         private const int MinutesUntilBlock = 1; // Change this to the desired number of minutes
         private TextBox pinBox;
         private Button submitButton;
+        private Label countdownLabel;
         private BlockScreenForm blockScreenForm;
+        private System.Windows.Forms.Timer timer;
 
         public Form1()
         {
@@ -20,14 +22,23 @@ namespace WinFormsActiveTango
             submitButton = new Button { Text = "Submit", Location = new System.Drawing.Point(50, 80) };
             submitButton.Click += submitButton_Click;
 
+            countdownLabel = new Label { Location = new System.Drawing.Point(50, 110) };
+            Controls.Add(countdownLabel);
+
             Controls.Add(pinBox);
             Controls.Add(submitButton);
 
-            blockScreenForm = new BlockScreenForm();
+            blockScreenForm = new BlockScreenForm(MinutesUntilBlock);
 
-            var timer = new System.Windows.Forms.Timer { Interval = MinutesUntilBlock * 60 * 1000 };
-            timer.Tick += (sender, e) => blockScreenForm.BlockSecondDisplay();
+            timer = new System.Windows.Forms.Timer { Interval = 1000 }; // Update every second
+            timer.Tick += (sender, e) => UpdateCountdown();
             timer.Start();
+        }
+
+        private void UpdateCountdown()
+        {
+            var remainingTime = blockScreenForm.BlockTime - DateTime.Now;
+            countdownLabel.Text = remainingTime.ToString(@"hh\:mm\:ss");
         }
 
         private void submitButton_Click(object sender, EventArgs e)
@@ -35,6 +46,9 @@ namespace WinFormsActiveTango
             if (pinBox.Text == CorrectPin)
             {
                 blockScreenForm.Hide();
+                blockScreenForm.ResetBlockTime(MinutesUntilBlock);
+                timer.Stop();
+                timer.Start();
             }
             else
             {
