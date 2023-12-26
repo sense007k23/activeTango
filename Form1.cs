@@ -71,7 +71,7 @@ namespace WinFormsActiveTango
             timer.Tick += (sender, e) => UpdateCountdown();
             timer.Start();
 
-            todoDataGridView = new DataGridView { Location = new Point(300, 10), Size = new Size(650, 300), AutoGenerateColumns = false, AllowUserToAddRows = false };
+            todoDataGridView = new DataGridView { Location = new Point(300, 10), Size = new Size(650, 300), AutoGenerateColumns = false, AllowUserToAddRows = true };
             todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "Name", DataPropertyName = "Name", HeaderText = "Task", Width = 250 });
             todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "Priority", DataPropertyName = "Priority", HeaderText = "Priority", Width = 50 });
             todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "DueDate", DataPropertyName = "DueDate", HeaderText = "Due Date", Width = 150 });
@@ -118,7 +118,7 @@ namespace WinFormsActiveTango
             }
 
             todoDataGridView.CellEndEdit += todoDataGridView_CellEndEdit; //
-
+          
         }
 
         private void createTaskButton_Click(object sender, EventArgs e)
@@ -179,26 +179,71 @@ namespace WinFormsActiveTango
         private void todoDataGridView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             DataGridViewRow editedRow = todoDataGridView.Rows[e.RowIndex];
-            long taskId = (long)editedRow.Tag;
+
+            // Check if the DueDate cell is empty
+            if (editedRow.Cells["DueDate"].Value == null || string.IsNullOrWhiteSpace(editedRow.Cells["DueDate"].Value.ToString()))
+            {
+                // Set the DueDate cell to the current date and time plus 15 minutes, rounded to the nearest 5 minutes
+                DateTime now = DateTime.Now;
+                DateTime roundedTime = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute / 5 * 5, 0);
+                DateTime dueDate = roundedTime.AddMinutes(15);
+                editedRow.Cells["DueDate"].Value = dueDate.ToString("dd-MM-yyyy hh:mm tt");
+            }
+
+            // Check if the Status cell is empty
+            if (editedRow.Cells["Status"].Value == null || string.IsNullOrWhiteSpace(editedRow.Cells["Status"].Value.ToString()))
+            {
+                // Set the Status cell to "Pending"
+                editedRow.Cells["Status"].Value = "Pending";
+            }
 
             using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
             {
                 conn.Open();
 
-                string sql = "UPDATE Tasks SET Name = @Name, Priority = @Priority, DueDate = @DueDate, Status = @Status WHERE ID = @ID";
-
-                using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                if (editedRow.Tag == null)
                 {
-                    command.Parameters.AddWithValue("@Name", editedRow.Cells["Name"].Value);
-                    command.Parameters.AddWithValue("@Priority", editedRow.Cells["Priority"].Value);
-                    command.Parameters.AddWithValue("@DueDate", editedRow.Cells["DueDate"].Value);
-                    command.Parameters.AddWithValue("@Status", editedRow.Cells["Status"].Value);
-                    command.Parameters.AddWithValue("@ID", taskId);
+                    // This is a new row, insert it into the database
+                    string sql = "INSERT INTO Tasks (Name, Priority, DueDate, Status) VALUES (@Name, @Priority, @DueDate, @Status)";
 
-                    command.ExecuteNonQuery();
+                    using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                    {
+                        command.Parameters.AddWithValue("@Name", editedRow.Cells["Name"].Value);
+                        command.Parameters.AddWithValue("@Priority", editedRow.Cells["Priority"].Value);
+                        command.Parameters.AddWithValue("@DueDate", editedRow.Cells["DueDate"].Value);
+                        command.Parameters.AddWithValue("@Status", editedRow.Cells["Status"].Value);
+
+                        command.ExecuteNonQuery();
+
+                        // Get the ID of the inserted row
+                        long taskId = conn.LastInsertRowId;
+
+                        // Store the task ID in the Tag property
+                        editedRow.Tag = taskId;
+                    }
+                }
+                else
+                {
+                    // This is an existing row, update it in the database
+                    long taskId = (long)editedRow.Tag;
+
+                    string sql = "UPDATE Tasks SET Name = @Name, Priority = @Priority, DueDate = @DueDate, Status = @Status WHERE ID = @ID";
+
+                    using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                    {
+                        command.Parameters.AddWithValue("@Name", editedRow.Cells["Name"].Value);
+                        command.Parameters.AddWithValue("@Priority", editedRow.Cells["Priority"].Value);
+                        command.Parameters.AddWithValue("@DueDate", editedRow.Cells["DueDate"].Value);
+                        command.Parameters.AddWithValue("@Status", editedRow.Cells["Status"].Value);
+                        command.Parameters.AddWithValue("@ID", taskId);
+
+                        command.ExecuteNonQuery();
+                    }
                 }
             }
         }
+
+
 
         private void UpdateCountdown()
         {
