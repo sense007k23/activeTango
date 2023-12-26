@@ -86,7 +86,10 @@ namespace WinFormsActiveTango
 
             contextMenuStrip = new ContextMenuStrip();
             contextMenuStrip.Items.Add("Mark as Done", null, markAsDone_Click);
+            contextMenuStrip.Items.Add("Delete Task", null, deleteTask_Click);
             todoDataGridView.ContextMenuStrip = contextMenuStrip;
+
+
 
             Controls.Add(todoDataGridView);
             Controls.Add(createTaskButton);
@@ -149,6 +152,32 @@ namespace WinFormsActiveTango
                         todoDataGridView.Rows[rowIndex].Tag = taskId;
                     }
                 }
+            }
+        }
+
+        private void deleteTask_Click(object sender, EventArgs e)
+        {
+            if (todoDataGridView.SelectedCells.Count > 0)
+            {
+                int selectedrowindex = todoDataGridView.SelectedCells[0].RowIndex;
+                DataGridViewRow selectedRow = todoDataGridView.Rows[selectedrowindex];
+                long taskId = (long)selectedRow.Tag;
+
+                using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
+                {
+                    conn.Open();
+
+                    string sql = "DELETE FROM Tasks WHERE ID = @ID";
+
+                    using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                    {
+                        command.Parameters.AddWithValue("@ID", taskId);
+
+                        command.ExecuteNonQuery();
+                    }
+                }
+
+                todoDataGridView.Rows.RemoveAt(selectedrowindex);
             }
         }
 
