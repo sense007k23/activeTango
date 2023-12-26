@@ -7,7 +7,7 @@ namespace WinFormsActiveTango
     public partial class Form1 : Form
     {
         private const string CorrectPin = "1234";
-        private const int MinutesUntilBlock = 1; // Change this to the desired number of minutes
+        private const int MinutesUntilBlock = 1;
         private TextBox pinBox;
         private Button submitButton;
         private Label countdownLabel;
@@ -15,37 +15,57 @@ namespace WinFormsActiveTango
         private Button updateButton;
         private BlockScreenForm blockScreenForm;
         private System.Windows.Forms.Timer timer;
+        private const string ClosePin = "4321";
+        private TextBox closePinBox;
+        private Button closeButton;
+        private bool allowClose = false;
+        private int secondsCounter = 0;
 
         public Form1()
         {
             InitializeComponent();
 
-            pinBox = new TextBox { Location = new System.Drawing.Point(50, 50) };
-            submitButton = new Button { Text = "Submit", Location = new System.Drawing.Point(50, 80) };
+            pinBox = new TextBox { Location = new Point(10, 20) };
+            submitButton = new Button { Text = "Submit", Location = new Point(10, 50) };
             submitButton.Click += submitButton_Click;
 
-            countdownLabel = new Label { Location = new System.Drawing.Point(50, 110) };
-            Controls.Add(countdownLabel);
+            countdownLabel = new Label { Location = new Point(10, 20), Font = new Font("Arial", 16) };
 
-            Controls.Add(pinBox);
-            Controls.Add(submitButton);
-
-            minutesBox = new TextBox { Location = new System.Drawing.Point(50, 140) };
-            updateButton = new Button { Text = "Update Timer", Location = new System.Drawing.Point(50, 170) };
+            minutesBox = new TextBox { Location = new Point(10, 20) };
+            updateButton = new Button { Text = "Update Timer", Location = new Point(10, 50) };
             updateButton.Click += updateButton_Click;
 
-            Controls.Add(minutesBox);
-            Controls.Add(updateButton);
+            closePinBox = new TextBox { Location = new Point(10, 20) };
+            closeButton = new Button { Text = "Close", Location = new Point(10, 50) };
+            closeButton.Click += closeButton_Click;
 
+            var pinGroup = new GroupBox { Text = "Pin Entry", Location = new Point(50, 90), Size = new Size(200, 100) };
+            pinGroup.Controls.Add(pinBox);
+            pinGroup.Controls.Add(submitButton);
+
+            var countdownGroup = new GroupBox { Text = "Countdown", Location = new Point(50, 10), Size = new Size(200, 70) };
+            countdownGroup.Controls.Add(countdownLabel);
+
+            var updateGroup = new GroupBox { Text = "Update Timer", Location = new Point(50, 190), Size = new Size(200, 100) };
+            updateGroup.Controls.Add(minutesBox);
+            updateGroup.Controls.Add(updateButton);
+
+            var closeGroup = new GroupBox { Text = "Close Application", Location = new Point(50, 300), Size = new Size(200, 100) };
+            closeGroup.Controls.Add(closePinBox);
+            closeGroup.Controls.Add(closeButton);
+
+            Controls.Add(pinGroup);
+            Controls.Add(countdownGroup);
+            Controls.Add(updateGroup);
+            Controls.Add(closeGroup);
 
             blockScreenForm = new BlockScreenForm(MinutesUntilBlock);
 
-            timer = new System.Windows.Forms.Timer { Interval = 1000 }; // Update every second
+            timer = new System.Windows.Forms.Timer { Interval = 1000 };
             timer.Tick += (sender, e) => UpdateCountdown();
             timer.Start();
         }
 
-        private int secondsCounter = 0;
         private void UpdateCountdown()
         {
             var remainingTime = blockScreenForm.BlockTime - DateTime.Now;
@@ -56,7 +76,7 @@ namespace WinFormsActiveTango
                 secondsCounter++;
                 if (secondsCounter >= 15)
                 {
-                    if (!blockScreenForm.Visible) // Check if the blocker window is not visible
+                    if (!blockScreenForm.Visible)
                     {
                         System.Media.SoundPlayer player = new System.Media.SoundPlayer("notification1.wav");
                         player.Play();
@@ -67,21 +87,6 @@ namespace WinFormsActiveTango
             else
             {
                 secondsCounter = 0;
-            }
-        }
-
-        private void updateButton_Click(object sender, EventArgs e)
-        {
-            if (int.TryParse(minutesBox.Text, out int newMinutes))
-            {
-                blockScreenForm.UpdateTimer(newMinutes);
-                timer.Stop();
-                timer.Start();
-            }
-            else
-            {
-                MessageBox.Show("Invalid input. Please enter a number.");
-                minutesBox.Clear();
             }
         }
 
@@ -100,6 +105,43 @@ namespace WinFormsActiveTango
                 pinBox.Clear();
             }
         }
-    }
 
+        private void updateButton_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(minutesBox.Text, out int newMinutes))
+            {
+                blockScreenForm.UpdateTimer(newMinutes);
+                timer.Stop();
+                timer.Start();
+            }
+            else
+            {
+                MessageBox.Show("Invalid input. Please enter a number.");
+                minutesBox.Clear();
+            }
+        }
+
+        private void closeButton_Click(object sender, EventArgs e)
+        {
+            if (closePinBox.Text == ClosePin)
+            {
+                allowClose = true;
+                Application.Exit();
+            }
+            else
+            {
+                MessageBox.Show("Incorrect pin. Please try again.");
+                closePinBox.Clear();
+            }
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (!allowClose)
+            {
+                e.Cancel = true;
+            }
+            base.OnFormClosing(e);
+        }
+    }
 }
