@@ -117,7 +117,7 @@ namespace WinFormsActiveTango
                 }
             }
 
-
+            todoDataGridView.CellEndEdit += todoDataGridView_CellEndEdit; //
 
         }
 
@@ -172,6 +172,30 @@ namespace WinFormsActiveTango
 
                         command.ExecuteNonQuery();
                     }
+                }
+            }
+        }
+
+        private void todoDataGridView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridViewRow editedRow = todoDataGridView.Rows[e.RowIndex];
+            long taskId = (long)editedRow.Tag;
+
+            using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
+            {
+                conn.Open();
+
+                string sql = "UPDATE Tasks SET Name = @Name, Priority = @Priority, DueDate = @DueDate, Status = @Status WHERE ID = @ID";
+
+                using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                {
+                    command.Parameters.AddWithValue("@Name", editedRow.Cells["Name"].Value);
+                    command.Parameters.AddWithValue("@Priority", editedRow.Cells["Priority"].Value);
+                    command.Parameters.AddWithValue("@DueDate", editedRow.Cells["DueDate"].Value);
+                    command.Parameters.AddWithValue("@Status", editedRow.Cells["Status"].Value);
+                    command.Parameters.AddWithValue("@ID", taskId);
+
+                    command.ExecuteNonQuery();
                 }
             }
         }
