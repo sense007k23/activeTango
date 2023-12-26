@@ -21,6 +21,10 @@ namespace WinFormsActiveTango
         private bool allowClose = false;
         private int secondsCounter = 0;
 
+        private ListBox todoListBox;
+        private Button createTaskButton;
+        private ContextMenuStrip contextMenuStrip;
+
         public Form1()
         {
             InitializeComponent();
@@ -64,6 +68,37 @@ namespace WinFormsActiveTango
             timer = new System.Windows.Forms.Timer { Interval = 1000 };
             timer.Tick += (sender, e) => UpdateCountdown();
             timer.Start();
+
+            todoListBox = new ListBox { Location = new Point(300, 10), Size = new Size(300, 300) }; 
+            createTaskButton = new Button { Text = "Create Task", Location = new Point(300, 320) };
+            createTaskButton.Click += createTaskButton_Click;
+
+            contextMenuStrip = new ContextMenuStrip();
+            contextMenuStrip.Items.Add("Mark as Done", null, markAsDone_Click);
+            todoListBox.ContextMenuStrip = contextMenuStrip;
+
+            Controls.Add(todoListBox);
+            Controls.Add(createTaskButton);
+
+
+
+        }
+
+        private void createTaskButton_Click(object sender, EventArgs e)
+        {
+            var createTaskForm = new CreateTaskForm();
+            if (createTaskForm.ShowDialog() == DialogResult.OK)
+            {
+                todoListBox.Items.Add(createTaskForm.Task);
+            }
+        }
+
+        private void markAsDone_Click(object sender, EventArgs e)
+        {
+            if (todoListBox.SelectedIndex != -1)
+            {
+                todoListBox.Items[todoListBox.SelectedIndex] += " (Done)";
+            }
         }
 
         private void UpdateCountdown()
