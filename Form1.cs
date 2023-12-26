@@ -11,6 +11,8 @@ namespace WinFormsActiveTango
         private TextBox pinBox;
         private Button submitButton;
         private Label countdownLabel;
+        private TextBox minutesBox;
+        private Button updateButton;
         private BlockScreenForm blockScreenForm;
         private System.Windows.Forms.Timer timer;
 
@@ -27,6 +29,14 @@ namespace WinFormsActiveTango
 
             Controls.Add(pinBox);
             Controls.Add(submitButton);
+
+            minutesBox = new TextBox { Location = new System.Drawing.Point(50, 140) };
+            updateButton = new Button { Text = "Update Timer", Location = new System.Drawing.Point(50, 170) };
+            updateButton.Click += updateButton_Click;
+
+            Controls.Add(minutesBox);
+            Controls.Add(updateButton);
+
 
             blockScreenForm = new BlockScreenForm(MinutesUntilBlock);
 
@@ -57,6 +67,21 @@ namespace WinFormsActiveTango
             else
             {
                 secondsCounter = 0;
+            }
+        }
+
+        private void updateButton_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(minutesBox.Text, out int newMinutes))
+            {
+                blockScreenForm.UpdateTimer(newMinutes);
+                timer.Stop();
+                timer.Start();
+            }
+            else
+            {
+                MessageBox.Show("Invalid input. Please enter a number.");
+                minutesBox.Clear();
             }
         }
 

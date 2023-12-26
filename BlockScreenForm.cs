@@ -8,20 +8,28 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
 namespace WinFormsActiveTango
 {
     public partial class BlockScreenForm : Form
     {
         public DateTime BlockTime { get; private set; }
+        private System.Windows.Forms.Timer timer;
 
         public BlockScreenForm(int minutesUntilBlock)
         {
             InitializeComponent();
             ResetBlockTime(minutesUntilBlock);
 
-            var timer = new System.Windows.Forms.Timer { Interval = minutesUntilBlock * 60 * 1000 };
+            timer = new System.Windows.Forms.Timer { Interval = minutesUntilBlock * 60 * 1000 };
             timer.Tick += (sender, e) => BlockSecondDisplay();
             timer.Start();
+        }
+
+        public void UpdateTimer(int minutesUntilBlock)
+        {
+            ResetBlockTime(minutesUntilBlock);
+            timer.Interval = minutesUntilBlock * 60 * 1000;
         }
 
         public void ResetBlockTime(int minutesUntilBlock)
