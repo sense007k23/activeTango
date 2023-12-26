@@ -35,10 +35,26 @@ namespace WinFormsActiveTango
             timer.Start();
         }
 
+        private int secondsCounter = 0;
         private void UpdateCountdown()
         {
             var remainingTime = blockScreenForm.BlockTime - DateTime.Now;
             countdownLabel.Text = remainingTime.ToString(@"hh\:mm\:ss");
+
+            if (remainingTime.TotalMinutes < 1)
+            {
+                secondsCounter++;
+                if (secondsCounter >= 15)
+                {
+                    System.Media.SoundPlayer player = new System.Media.SoundPlayer("notification1.wav");
+                    player.Play();
+                    secondsCounter = 0;
+                }
+            }
+            else
+            {
+                secondsCounter = 0;
+            }
         }
 
         private void submitButton_Click(object sender, EventArgs e)
