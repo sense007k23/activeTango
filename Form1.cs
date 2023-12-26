@@ -95,7 +95,7 @@ namespace WinFormsActiveTango
             {
                 conn.Open();
 
-                string sql = "CREATE TABLE IF NOT EXISTS Tasks (Name TEXT, Priority TEXT, DueDate TEXT, Status TEXT)";
+                string sql = "CREATE TABLE IF NOT EXISTS Tasks (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Priority TEXT, DueDate TEXT, Status TEXT)";
 
                 using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                 {
@@ -110,7 +110,8 @@ namespace WinFormsActiveTango
                     {
                         while (reader.Read())
                         {
-                            todoDataGridView.Rows.Add(reader["Name"], reader["Priority"], reader["DueDate"], reader["Status"]);
+                            int rowIndex = todoDataGridView.Rows.Add(reader["Name"], reader["Priority"], reader["DueDate"], reader["Status"]);
+                            todoDataGridView.Rows[rowIndex].Tag = reader["ID"];
                         }
                     }
                 }
@@ -125,7 +126,6 @@ namespace WinFormsActiveTango
             var createTaskForm = new CreateTaskForm();
             if (createTaskForm.ShowDialog() == DialogResult.OK)
             {
-                todoDataGridView.Rows.Add(createTaskForm.Task.Name, createTaskForm.Task.Priority, createTaskForm.Task.DueDate, createTaskForm.Task.Status);
                 using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
                 {
                     conn.Open();
@@ -140,6 +140,13 @@ namespace WinFormsActiveTango
                         command.Parameters.AddWithValue("@Status", createTaskForm.Task.Status);
 
                         command.ExecuteNonQuery();
+
+                        // Get the ID of the inserted row
+                        long taskId = conn.LastInsertRowId;
+
+                        // Add the row to the DataGridView and store the task ID in the Tag property
+                        int rowIndex = todoDataGridView.Rows.Add(createTaskForm.Task.Name, createTaskForm.Task.Priority, createTaskForm.Task.DueDate, createTaskForm.Task.Status);
+                        todoDataGridView.Rows[rowIndex].Tag = taskId;
                     }
                 }
             }
@@ -157,18 +164,15 @@ namespace WinFormsActiveTango
                 {
                     conn.Open();
 
-                    string sql = "UPDATE Tasks SET Status = 'Done' WHERE Name = @Name AND Priority = @Priority AND DueDate = @DueDate";
+                    string sql = "UPDATE Tasks SET Status = 'Done' WHERE ID = @ID";
 
                     using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                     {
-                        command.Parameters.AddWithValue("@Name", selectedRow.Cells["Name"].Value);
-                        command.Parameters.AddWithValue("@Priority", selectedRow.Cells["Priority"].Value);
-                        command.Parameters.AddWithValue("@DueDate", selectedRow.Cells["DueDate"].Value);
+                        command.Parameters.AddWithValue("@ID", (long)selectedRow.Tag);
 
                         command.ExecuteNonQuery();
                     }
                 }
-
             }
         }
 
