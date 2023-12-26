@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Data.SQLite;
+using System.Globalization;
 
 namespace WinFormsActiveTango
 {
@@ -121,7 +122,41 @@ namespace WinFormsActiveTango
             }
 
             todoDataGridView.CellEndEdit += todoDataGridView_CellEndEdit; //
-          
+            todoDataGridView.CellFormatting += todoDataGridView_CellFormatting;
+
+        }
+
+        private void todoDataGridView_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            DataGridViewRow row = todoDataGridView.Rows[e.RowIndex];
+
+            // Check if the DueDate and Status cells are not empty
+            if (row.Cells["DueDate"].Value != null && !string.IsNullOrWhiteSpace(row.Cells["DueDate"].Value.ToString()) &&
+                row.Cells["Status"].Value != null && !string.IsNullOrWhiteSpace(row.Cells["Status"].Value.ToString()))
+            {
+                try
+                {
+                    DateTime dueDate = DateTime.ParseExact(row.Cells["DueDate"].Value.ToString(), "dd-MM-yyyy hh:mm tt", CultureInfo.InvariantCulture);
+                    string status = row.Cells["Status"].Value.ToString();
+
+                    // Check if the task is overdue and the status is "Pending"
+                    if (dueDate < DateTime.Now && status == "Pending")
+                    {
+                        // Change the background color of the Status cell to light red
+                        row.Cells["Status"].Style.BackColor = Color.LightCoral;
+                    }
+                    else
+                    {
+                        // Reset the background color of the Status cell
+                        row.Cells["Status"].Style.BackColor = Color.White;
+                    }
+                }
+                catch (FormatException)
+                {
+                    // The DueDate cell contains a string that is not a valid date and time
+                    // Handle the error here
+                }
+            }
         }
 
         private void createTaskButton_Click(object sender, EventArgs e)
