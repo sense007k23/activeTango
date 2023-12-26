@@ -46,8 +46,11 @@ namespace WinFormsActiveTango
                 secondsCounter++;
                 if (secondsCounter >= 15)
                 {
-                    System.Media.SoundPlayer player = new System.Media.SoundPlayer("notification1.wav");
-                    player.Play();
+                    if (!blockScreenForm.Visible) // Check if the blocker window is not visible
+                    {
+                        System.Media.SoundPlayer player = new System.Media.SoundPlayer("notification1.wav");
+                        player.Play();
+                    }
                     secondsCounter = 0;
                 }
             }
