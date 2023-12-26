@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -21,7 +22,7 @@ namespace WinFormsActiveTango
         private bool allowClose = false;
         private int secondsCounter = 0;
 
-        private ListBox todoListBox;
+        private DataGridView todoDataGridView;
         private Button createTaskButton;
         private ContextMenuStrip contextMenuStrip;
 
@@ -69,15 +70,24 @@ namespace WinFormsActiveTango
             timer.Tick += (sender, e) => UpdateCountdown();
             timer.Start();
 
-            todoListBox = new ListBox { Location = new Point(300, 10), Size = new Size(300, 300) }; 
+            todoDataGridView = new DataGridView { Location = new Point(300, 10), Size = new Size(650, 300), AutoGenerateColumns = false, AllowUserToAddRows = false };
+            todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Name", HeaderText = "Task", Width = 250 });
+            todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Priority", HeaderText = "Priority", Width = 50 });
+            todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "DueDate", HeaderText = "Due Date", Width = 150 });
+            todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Status", HeaderText = "Status", Width = 100 });
+            if (todoDataGridView.Rows.Count > 0)
+            {
+                todoDataGridView.Sort(todoDataGridView.Columns["DueDate"], ListSortDirection.Ascending);
+            }
+
             createTaskButton = new Button { Text = "Create Task", Location = new Point(300, 320) };
             createTaskButton.Click += createTaskButton_Click;
 
             contextMenuStrip = new ContextMenuStrip();
             contextMenuStrip.Items.Add("Mark as Done", null, markAsDone_Click);
-            todoListBox.ContextMenuStrip = contextMenuStrip;
+            todoDataGridView.ContextMenuStrip = contextMenuStrip;
 
-            Controls.Add(todoListBox);
+            Controls.Add(todoDataGridView);
             Controls.Add(createTaskButton);
 
 
@@ -89,15 +99,17 @@ namespace WinFormsActiveTango
             var createTaskForm = new CreateTaskForm();
             if (createTaskForm.ShowDialog() == DialogResult.OK)
             {
-                todoListBox.Items.Add(createTaskForm.Task);
+                todoDataGridView.Rows.Add(createTaskForm.Task.Name, createTaskForm.Task.Priority, createTaskForm.Task.DueDate, createTaskForm.Task.Status);
             }
         }
 
         private void markAsDone_Click(object sender, EventArgs e)
         {
-            if (todoListBox.SelectedIndex != -1)
+            if (todoDataGridView.SelectedCells.Count > 0)
             {
-                todoListBox.Items[todoListBox.SelectedIndex] += " (Done)";
+                int selectedrowindex = todoDataGridView.SelectedCells[0].RowIndex;
+                DataGridViewRow selectedRow = todoDataGridView.Rows[selectedrowindex];
+                selectedRow.Cells[3].Value = "Done";
             }
         }
 

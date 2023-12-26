@@ -6,7 +6,7 @@ namespace WinFormsActiveTango
 {
     public partial class CreateTaskForm : Form
     {
-        public string Task { get; private set; }
+        public Task Task { get; private set; }
 
         private TextBox taskNameBox;
         private ComboBox priorityBox;
@@ -70,7 +70,7 @@ namespace WinFormsActiveTango
 
             DateTime dueTime = DateTime.Parse($"{hourBox.SelectedItem}:{minuteBox.SelectedItem} {amPmBox.SelectedItem}");
             DateTime dueDateTime = dueDatePicker.Value.Date + dueTime.TimeOfDay;
-            Task = $"{taskNameBox.Text} ({priorityBox.SelectedItem}) - Due on {dueDateTime:dd-MM-yyyy hh:mm tt}";
+            Task = new Task { Name = taskNameBox.Text, Priority = priorityBox.SelectedItem.ToString(), DueDate = dueDateTime.ToString("dd-MM-yyyy hh:mm tt"), Status = "Pending" };
             DialogResult = DialogResult.OK;
         }
 
