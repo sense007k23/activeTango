@@ -82,8 +82,22 @@ namespace WinFormsActiveTango
                 todoDataGridView.Sort(todoDataGridView.Columns["DueDate"], ListSortDirection.Ascending);
             }
 
-            createTaskButton = new Button { Text = "Create Task", Location = new Point(300, 320) };
+
+
+
+            GroupBox taskGroupBox = new GroupBox { Text = "Task Actions", Location = new Point(300, 320), Size = new Size(200, 50) };
+            Controls.Add(taskGroupBox);
+
+            createTaskButton = new Button { Text = "Create Task", Location = new Point(10, 20) };
             createTaskButton.Click += createTaskButton_Click;
+            taskGroupBox.Controls.Add(createTaskButton);
+
+            Button inboxTasksButton = new Button { Text = "InboxTasks", Location = new Point(110, 20) };
+            inboxTasksButton.Click += refreshButton_Click;
+            taskGroupBox.Controls.Add(inboxTasksButton);
+
+
+
 
             contextMenuStrip = new ContextMenuStrip();
             contextMenuStrip.Items.Add("Mark as Done", null, markAsDone_Click);
@@ -92,8 +106,7 @@ namespace WinFormsActiveTango
 
 
 
-            Controls.Add(todoDataGridView);
-            Controls.Add(createTaskButton);
+            Controls.Add(todoDataGridView);           
 
             using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
             {
@@ -123,6 +136,9 @@ namespace WinFormsActiveTango
 
             todoDataGridView.CellEndEdit += todoDataGridView_CellEndEdit; //
             todoDataGridView.CellFormatting += todoDataGridView_CellFormatting;
+
+            
+
 
         }
 
@@ -386,5 +402,69 @@ namespace WinFormsActiveTango
             }
             base.OnFormClosing(e);
         }
+
+        private void refreshButton_Click(object sender, EventArgs e)
+        {
+            using (StreamReader reader = new StreamReader("TaskInbox.csv"))
+            {
+                reader.ReadLine(); // Skip the header row
+
+                while (!reader.EndOfStream)
+                {
+                    string line = reader.ReadLine();
+                    string[] fields = line.Split(',');
+
+                    string taskName = fields[0];
+                    string dueDate = fields[1];
+                    string priority = fields[2];
+
+                    // Check if the task already exists in the DataGridView
+                    bool isDuplicate = false;
+                    foreach (DataGridViewRow row in todoDataGridView.Rows)
+                    {
+                        if ((string)row.Cells["Name"].Value == taskName && (string)row.Cells["DueDate"].Value == dueDate)
+                        {
+                            // The task already exists, skip it
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    if (isDuplicate)
+                    {
+                        // The task already exists, skip it
+                        continue;
+                    }
+
+                    // The task does not exist, add it to the DataGridView and the SQLite database
+                    using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
+                    {
+                        conn.Open();
+
+                        string sql = "INSERT INTO Tasks (Name, Priority, DueDate, Status) VALUES (@Name, @Priority, @DueDate, 'Pending')";
+
+                        using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                        {
+                            command.Parameters.AddWithValue("@Name", taskName);
+                            command.Parameters.AddWithValue("@Priority", priority);
+                            command.Parameters.AddWithValue("@DueDate", dueDate);
+
+                            command.ExecuteNonQuery();
+
+                            // Get the ID of the inserted row
+                            long taskId = conn.LastInsertRowId;
+
+                            // Add the row to the DataGridView and store the task ID in the Tag property
+                            int rowIndex = todoDataGridView.Rows.Add(taskName, priority, dueDate, "Pending");
+                            todoDataGridView.Rows[rowIndex].Tag = taskId;
+                        }
+                    }
+                }
+            }
+        }
+
     }
+
+
+
 }
