@@ -33,6 +33,7 @@ namespace WinFormsActiveTango
             InitializeComponent();
             this.Text = "Action Tango";
             this.WindowState = FormWindowState.Maximized;
+            this.Icon = new Icon("favicon.ico");
 
 
             pinBox = new TextBox { Location = new Point(10, 20) };
