@@ -31,6 +31,9 @@ namespace WinFormsActiveTango
         public Form1()
         {
             InitializeComponent();
+            this.Text = "Action Tango";
+            this.WindowState = FormWindowState.Maximized;
+
 
             pinBox = new TextBox { Location = new Point(10, 20) };
             submitButton = new Button { Text = "Submit", Location = new Point(10, 50) };

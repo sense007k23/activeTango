@@ -20,6 +20,7 @@ namespace WinFormsActiveTango
         public CreateTaskForm()
         {
             InitializeComponent();
+            this.Text = "Creat Action Tango Tasks";
 
             taskNameBox = new TextBox { Location = new Point(10, 10) };
             priorityBox = new ComboBox { Location = new Point(10, 40), DropDownStyle = ComboBoxStyle.DropDownList };
