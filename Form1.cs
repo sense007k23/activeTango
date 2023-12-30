@@ -153,7 +153,7 @@ namespace WinFormsActiveTango
             if (int.TryParse(minutesBox.Text, out int newMinutes))
             {
                 MinutesUntilBlock_updated += newMinutes;
-                blockScreenForm.UpdateTimer(newMinutes);
+                blockScreenForm.UpdateTimer(MinutesUntilBlock_updated);
                 timer.Stop();
                 timer.Start();
             }
