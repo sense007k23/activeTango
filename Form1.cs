@@ -26,7 +26,9 @@ namespace WinFormsActiveTango
         private TabControl tabControl;
         private TabPage tabPage1;
         private TabPage tabPage2;
+        private TabPage tabPage3;
 
+        private AnalysisTab analysisTab;
         private TasksTab tasksTab;
         private ApplicationsTab applicationsTab;
         private Button unlockButton;
@@ -90,6 +92,14 @@ namespace WinFormsActiveTango
 
             tasksTab = new TasksTab(tabPage1);
             applicationsTab = new ApplicationsTab(tabPage2);
+
+            tabPage3 = new TabPage("Analysis");
+            tabControl.TabPages.Add(tabPage3);
+            analysisTab = new AnalysisTab(tabPage3);
+
+            Controls.Add(tabControl);
+
+
 
             blockScreenForm = new BlockScreenForm(MinutesUntilBlock);
 
