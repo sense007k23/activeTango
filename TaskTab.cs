@@ -303,7 +303,7 @@ namespace WinFormsActiveTango
                     string status = row.Cells["Status"].Value.ToString();
 
                     // Check if the task is overdue and the status is "Pending"
-                    if (dueDate < DateTime.Now && status == "Pending")
+                    if (dueDate.AddMinutes(-15) < DateTime.Now && status == "Pending")
                     {
                         // Change the background color of the Status cell to light red
                         row.Cells["Status"].Style.BackColor = Color.LightCoral;

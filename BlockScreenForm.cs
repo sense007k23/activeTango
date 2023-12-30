@@ -35,6 +35,10 @@ namespace WinFormsActiveTango
         public void ResetBlockTime(int minutesUntilBlock)
         {
             BlockTime = DateTime.Now.AddMinutes(minutesUntilBlock);
+            if (timer !=  null) { 
+                timer.Stop();
+                timer.Start();
+            }
         }
 
         public void BlockSecondDisplay()

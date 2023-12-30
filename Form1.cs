@@ -11,9 +11,7 @@ namespace WinFormsActiveTango
     public partial class Form1 : Form
     {
         private const string CorrectPin = "1234";
-        private const int MinutesUntilBlock = 1;
-        private TextBox pinBox;
-        private Button submitButton;
+        private const int MinutesUntilBlock = 1;      
         private Label countdownLabel;
         private TextBox minutesBox;
         private Button updateButton;
@@ -31,6 +29,8 @@ namespace WinFormsActiveTango
 
         private TasksTab tasksTab;
         private ApplicationsTab applicationsTab;
+        private Button unlockButton;
+        private int MinutesUntilBlock_updated = 1;
 
         public Form1()
         {
@@ -39,10 +39,7 @@ namespace WinFormsActiveTango
             this.Text = "Action Tango";
             this.WindowState = FormWindowState.Maximized;
             this.Icon = new Icon("favicon.ico");
-
-            pinBox = new TextBox { Location = new Point(10, 20) };
-            submitButton = new Button { Text = "Submit", Location = new Point(10, 50) };
-            submitButton.Click += submitButton_Click;
+                       
 
             countdownLabel = new Label { Location = new Point(10, 20), Font = new Font("Arial", 16) };
 
@@ -54,9 +51,12 @@ namespace WinFormsActiveTango
             closeButton = new Button { Text = "Close", Location = new Point(10, 50) };
             closeButton.Click += closeButton_Click;
 
-            var pinGroup = new GroupBox { Text = "Pin Entry", Location = new Point(50, 90), Size = new Size(200, 100) };
-            pinGroup.Controls.Add(pinBox);
-            pinGroup.Controls.Add(submitButton);
+            unlockButton = new Button { Text = "Unlock", Location = new Point(10, 20) };
+            unlockButton.Click += unlockButton_Click;
+
+            
+            var pinGroup = new GroupBox { Text = "Unlock Screen", Location = new Point(50, 90), Size = new Size(200, 50) };
+            pinGroup.Controls.Add(unlockButton);
 
             var countdownGroup = new GroupBox { Text = "Countdown", Location = new Point(50, 10), Size = new Size(200, 70) };
             countdownGroup.Controls.Add(countdownLabel);
@@ -96,6 +96,22 @@ namespace WinFormsActiveTango
             timer = new System.Windows.Forms.Timer { Interval = 1000 };
             timer.Tick += (sender, e) => UpdateCountdown();
             timer.Start();
+
+           
+        }
+
+        private void unlockButton_Click(object sender, EventArgs e)
+        {
+            UnlockScreenForm pinEntryForm = new UnlockScreenForm(MinutesUntilBlock_updated);
+            
+
+            if (pinEntryForm.ShowDialog() == DialogResult.OK)            {
+                
+                blockScreenForm.Hide();
+                blockScreenForm.ResetBlockTime(MinutesUntilBlock);
+                timer.Stop();
+                timer.Start();
+            }
         }
 
         private void UpdateCountdown()
@@ -120,28 +136,13 @@ namespace WinFormsActiveTango
             {
                 secondsCounter = 0;
             }
-        }
-
-        private void submitButton_Click(object sender, EventArgs e)
-        {
-            if (pinBox.Text == CorrectPin)
-            {
-                blockScreenForm.Hide();
-                blockScreenForm.ResetBlockTime(MinutesUntilBlock);
-                timer.Stop();
-                timer.Start();
-            }
-            else
-            {
-                MessageBox.Show("Incorrect pin. Please try again.");
-                pinBox.Clear();
-            }
-        }
+        }          
 
         private void updateButton_Click(object sender, EventArgs e)
         {
             if (int.TryParse(minutesBox.Text, out int newMinutes))
             {
+                MinutesUntilBlock_updated += newMinutes;
                 blockScreenForm.UpdateTimer(newMinutes);
                 timer.Stop();
                 timer.Start();
