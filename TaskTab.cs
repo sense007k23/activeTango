@@ -14,11 +14,32 @@ namespace WinFormsActiveTango
         private Button createTaskButton;
         private ContextMenuStrip contextMenuStrip;
         private TabPage tabPage;
+        private System.Windows.Forms.Timer timer;
 
         public TasksTab(TabPage tabPage)
         {
             this.tabPage = tabPage;
             InitializeTasksTab();
+
+            timer = new System.Windows.Forms.Timer { Interval = 60 * 1000 }; // 1 minute
+            timer.Tick += Timer_Tick;
+            timer.Start();
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in todoDataGridView.Rows)
+            {
+                if (row.Cells["Status"].Value != null && row.Cells["Status"].Value.ToString() == "Pending" &&
+                    row.Cells["DueDate"].Value != null && DateTime.TryParse(row.Cells["DueDate"].Value.ToString(), out DateTime dueDate) && dueDate <= DateTime.Now.AddMinutes(15))
+                {
+                    row.Cells["Status"].Style.BackColor = Color.LightCoral;
+                }
+                else
+                {
+                    row.Cells["Status"].Style.BackColor = Color.White;
+                }
+            }
         }
 
         private void InitializeTasksTab()
