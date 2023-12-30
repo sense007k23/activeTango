@@ -30,14 +30,22 @@ namespace WinFormsActiveTango
         {
             foreach (DataGridViewRow row in todoDataGridView.Rows)
             {
-                if (row.Cells["Status"].Value != null && row.Cells["Status"].Value.ToString() == "Pending" &&
-                    row.Cells["DueDate"].Value != null && DateTime.TryParse(row.Cells["DueDate"].Value.ToString(), out DateTime dueDate) && dueDate <= DateTime.Now.AddMinutes(15))
+                if (row.Cells["DueDate"].Value != null && row.Cells["Status"].Value != null)
                 {
-                    row.Cells["Status"].Style.BackColor = Color.LightCoral;
-                }
-                else
-                {
-                    row.Cells["Status"].Style.BackColor = Color.White;
+                    DateTime dueDate = DateTime.ParseExact(row.Cells["DueDate"].Value.ToString(), "dd-MM-yyyy hh:mm tt", CultureInfo.InvariantCulture);
+                    string status = row.Cells["Status"].Value.ToString();
+
+                    // Check if the task is overdue and the status is "Pending"
+                    if (dueDate.AddMinutes(-15) < DateTime.Now && status == "Pending")
+                    {
+                        // Change the background color of the Status cell to light red
+                        row.Cells["Status"].Style.BackColor = Color.LightCoral;
+                    }
+                    else
+                    {
+                        // Reset the background color of the Status cell
+                        row.Cells["Status"].Style.BackColor = Color.White;
+                    }
                 }
             }
         }
@@ -324,16 +332,16 @@ namespace WinFormsActiveTango
                     string status = row.Cells["Status"].Value.ToString();
 
                     // Check if the task is overdue and the status is "Pending"
-                    if (dueDate.AddMinutes(-15) < DateTime.Now && status == "Pending")
-                    {
-                        // Change the background color of the Status cell to light red
-                        row.Cells["Status"].Style.BackColor = Color.LightCoral;
-                    }
-                    else
-                    {
-                        // Reset the background color of the Status cell
-                        row.Cells["Status"].Style.BackColor = Color.White;
-                    }
+                    //if (dueDate.AddMinutes(-15) < DateTime.Now && status == "Pending")
+                    //{
+                    //    // Change the background color of the Status cell to light red
+                    //    row.Cells["Status"].Style.BackColor = Color.LightCoral;
+                    //}
+                    //else
+                    //{
+                    //    // Reset the background color of the Status cell
+                    //    row.Cells["Status"].Style.BackColor = Color.White;
+                    //}
                 }
                 catch (FormatException)
                 {
