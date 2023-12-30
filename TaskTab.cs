@@ -63,6 +63,7 @@ namespace WinFormsActiveTango
             todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "Priority", DataPropertyName = "Priority", HeaderText = "Priority", Width = 50 });
             todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "DueDate", DataPropertyName = "DueDate", HeaderText = "Due Date", Width = 150 });
             todoDataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "Status", DataPropertyName = "Status", HeaderText = "Status", Width = 100 });
+            todoDataGridView.CellValidating += TodoDataGridView_CellValidating;
             if (todoDataGridView.Rows.Count > 0)
             {
                 todoDataGridView.Sort(todoDataGridView.Columns["DueDate"], ListSortDirection.Ascending);
@@ -114,6 +115,18 @@ namespace WinFormsActiveTango
 
             todoDataGridView.CellEndEdit += todoDataGridView_CellEndEdit;
             todoDataGridView.CellFormatting += todoDataGridView_CellFormatting;
+        }
+
+        private void TodoDataGridView_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            if (e.ColumnIndex == todoDataGridView.Columns["DueDate"].Index && !todoDataGridView.Rows[e.RowIndex].IsNewRow)
+            {
+                if (!DateTime.TryParseExact(e.FormattedValue.ToString(), "dd-MM-yyyy hh:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime _))
+                {
+                    e.Cancel = true;
+                    MessageBox.Show("Invalid date format. Please enter the date in the format dd-MM-yyyy hh:mm tt.");
+                }
+            }
         }
 
         private void createTaskButton_Click(object sender, EventArgs e)
