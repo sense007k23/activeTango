@@ -21,7 +21,7 @@ namespace WinFormsActiveTango
             this.tabPage = tabPage;
             InitializeTasksTab();
 
-            timer = new System.Windows.Forms.Timer { Interval = 60 * 1000 }; // 1 minute
+            timer = new System.Windows.Forms.Timer { Interval = 1 * 1000 }; // 1 minute
             timer.Tick += Timer_Tick;
             timer.Start();
         }
@@ -35,11 +35,17 @@ namespace WinFormsActiveTango
                     DateTime dueDate = DateTime.ParseExact(row.Cells["DueDate"].Value.ToString(), "dd-MM-yyyy hh:mm tt", CultureInfo.InvariantCulture);
                     string status = row.Cells["Status"].Value.ToString();
 
-                    // Check if the task is overdue and the status is "Pending"
-                    if (dueDate.AddMinutes(-15) < DateTime.Now && status == "Pending")
+                    // Check if the task is due now and the status is "Pending"
+                    if (dueDate <= DateTime.Now && status == "Pending")
                     {
-                        // Change the background color of the Status cell to light red
-                        row.Cells["Status"].Style.BackColor = Color.LightCoral;
+                        // Change the background color of the Status cell to light coral
+                        row.Cells["Status"].Style.BackColor = row.Cells["Status"].Style.BackColor == Color.LightCoral ? Color.White : Color.LightCoral;
+                    }
+                    // Check if the task is due in the next 15 minutes and the status is "Pending"
+                    else if (dueDate <= DateTime.Now.AddMinutes(15) && status == "Pending")
+                    {
+                        // Change the background color of the Status cell to light yellow
+                        row.Cells["Status"].Style.BackColor = Color.Yellow;
                     }
                     else
                     {
