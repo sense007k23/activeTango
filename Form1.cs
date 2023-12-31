@@ -5,14 +5,13 @@ using System.Windows.Forms;
 using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace WinFormsActiveTango
 {
     public partial class Form1 : Form
     {
         private const string CorrectPin = "1234";
-        private const int MinutesUntilBlock = 1;      
+        private const int MinutesUntilBlock = 1;
         private Label countdownLabel;
         private TextBox minutesBox;
         private Button updateButton;
@@ -47,7 +46,8 @@ namespace WinFormsActiveTango
             this.Text = "Action Tango";
             this.WindowState = FormWindowState.Maximized;
             this.Icon = new Icon("favicon.ico");
-                       
+
+            tabPage1 = new TabPage("Tasks");
 
             countdownLabel = new Label { Location = new Point(10, 20), Font = new Font("Arial", 16) };
 
@@ -61,30 +61,15 @@ namespace WinFormsActiveTango
 
             unlockButton = new Button { Text = "Unlock", Location = new Point(10, 20) };
             unlockButton.Click += unlockButton_Click;
-
             
-            var pinGroup = new GroupBox { Text = "Unlock Screen", Location = new Point(50, 90), Size = new Size(200, 50) };
-            pinGroup.Controls.Add(unlockButton);
-
             var countdownGroup = new GroupBox { Text = "Countdown", Location = new Point(50, 10), Size = new Size(200, 70) };
             countdownGroup.Controls.Add(countdownLabel);
 
-            var updateGroup = new GroupBox { Text = "Update Timer", Location = new Point(50, 190), Size = new Size(200, 100) };
-            updateGroup.Controls.Add(minutesBox);
-            updateGroup.Controls.Add(updateButton);
+            var pinGroup = new GroupBox { Text = "Unlock Screen", Location = new Point(50, countdownGroup.Bottom + 10), Size = new Size(200, 50) };
+            pinGroup.Controls.Add(unlockButton);
 
-            var closeGroup = new GroupBox { Text = "Close Application", Location = new Point(50, 300), Size = new Size(200, 100) };
-            closeGroup.Controls.Add(closePinBox);
-            closeGroup.Controls.Add(closeButton);
-
-            tabPage1 = new TabPage("Tasks");
-            tabPage1.Controls.Add(pinGroup);
-            tabPage1.Controls.Add(countdownGroup);
-            tabPage1.Controls.Add(updateGroup);
-            tabPage1.Controls.Add(closeGroup);
-
-            // Add Time Buckets group box after closeGroup
-            timeBucketsGroupBox = new GroupBox { Text = "Time Buckets", Location = new Point(closeGroup.Left, closeGroup.Bottom + 10), Size = new Size(closeGroup.Width, 150) };
+            // Add Time Buckets group box after countdownGroup
+            timeBucketsGroupBox = new GroupBox { Text = "Time Buckets", Location = new Point(50, pinGroup.Bottom + 10), Size = new Size(200, 150) };
             tabPage1.Controls.Add(timeBucketsGroupBox);
 
             timeBucketsListBox = new ListBox { Location = new Point(10, 20), Size = new Size(timeBucketsGroupBox.Width - 20, 50) };
@@ -99,8 +84,20 @@ namespace WinFormsActiveTango
             loadTimeBucketButton.Click += LoadTimeBucketButton_Click;
             timeBucketsGroupBox.Controls.Add(loadTimeBucketButton);
 
+            var updateGroup = new GroupBox { Text = "Update Timer", Location = new Point(50, timeBucketsGroupBox.Bottom + 10), Size = new Size(200, 100) };
+            updateGroup.Controls.Add(minutesBox);
+            updateGroup.Controls.Add(updateButton);
+
+            var closeGroup = new GroupBox { Text = "Close Application", Location = new Point(50, updateGroup.Bottom + 10), Size = new Size(200, 100) };
+            closeGroup.Controls.Add(closePinBox);
+            closeGroup.Controls.Add(closeButton);
 
 
+            tabPage1.Controls.Add(countdownGroup);
+            tabPage1.Controls.Add(pinGroup);
+            tabPage1.Controls.Add(timeBucketsGroupBox);
+            tabPage1.Controls.Add(updateGroup);
+            tabPage1.Controls.Add(closeGroup);
 
             tabPage2 = new TabPage("Applications");
 
@@ -124,15 +121,11 @@ namespace WinFormsActiveTango
 
             Controls.Add(tabControl);
 
-
-
             blockScreenForm = new BlockScreenForm(MinutesUntilBlock);
 
             timer = new System.Windows.Forms.Timer { Interval = 1000 };
             timer.Tick += (sender, e) => UpdateCountdown();
             timer.Start();
-
-           
         }
 
         private void LoadTimeBuckets()
@@ -211,14 +204,12 @@ namespace WinFormsActiveTango
             LoadTimeBuckets();
         }
 
-
         private void unlockButton_Click(object sender, EventArgs e)
         {
             UnlockScreenForm pinEntryForm = new UnlockScreenForm(MinutesUntilBlock_updated);
-            
 
-            if (pinEntryForm.ShowDialog() == DialogResult.OK)            {
-                
+            if (pinEntryForm.ShowDialog() == DialogResult.OK)
+            {
                 blockScreenForm.Hide();
                 blockScreenForm.ResetBlockTime(MinutesUntilBlock);
                 timer.Stop();
@@ -248,7 +239,7 @@ namespace WinFormsActiveTango
             {
                 secondsCounter = 0;
             }
-        }          
+        }
 
         private void updateButton_Click(object sender, EventArgs e)
         {
@@ -298,9 +289,6 @@ namespace WinFormsActiveTango
 
                 // Remove the selected item from the ListBox
                 timeBucketsListBox.Items.Remove(selectedItem);
-
-
-
             }
         }
 
