@@ -48,14 +48,14 @@ namespace WinFormsActiveTango
                 conn.Open();
 
                 string sql = @"CREATE TABLE IF NOT EXISTS TimeBuckets 
-                       (
-                           ID INTEGER PRIMARY KEY AUTOINCREMENT, 
-                           BucketName TEXT, 
-                           Time TEXT, 
-                           Used INTEGER DEFAULT 0,
-                           TimeStamp_Created TEXT,
-                           TimeStamp_Used TEXT
-                       )";
+               (
+                   ID INTEGER PRIMARY KEY, 
+                   BucketName TEXT, 
+                   Time TEXT, 
+                   Used INTEGER DEFAULT 0,
+                   TimeStamp_UseBy TEXT,
+                   TimeStamp_Used TEXT
+               )";
 
                 using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                 {
@@ -159,7 +159,7 @@ namespace WinFormsActiveTango
             {
                 conn.Open();
 
-                string sql = "SELECT * FROM TimeBuckets WHERE Used = 0 AND date(TimeStamp_Created) = date('now')";
+                string sql = "SELECT * FROM TimeBuckets WHERE Used = 0 AND date(TimeStamp_UseBy) = date('now')";
 
                 using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                 {
@@ -182,52 +182,52 @@ namespace WinFormsActiveTango
 
         private void LoadTimeBucketButton_Click(object sender, EventArgs e)
         {
-            string header;
-
             using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
             {
                 conn.Open();
 
-                // Delete all rows from the TimeBuckets table
-                string sql = "DELETE FROM TimeBuckets";
-
-                using (SQLiteCommand command = new SQLiteCommand(sql, conn))
-                {
-                    command.ExecuteNonQuery();
-                }
-
                 // Read the CSV file
                 using (StreamReader reader = new StreamReader("TimeBuckets.csv"))
                 {
-                    header = reader.ReadLine(); // Keep the header
+                    reader.ReadLine(); // Skip the header
 
                     while (!reader.EndOfStream)
                     {
                         string line = reader.ReadLine();
                         string[] fields = line.Split(',');
 
-                        string bucketName = fields[0];
-                        string time = fields[1];
+                        string id = fields[0];
+                        string bucketName = fields[1];
+                        string time = fields[2];
+                        string timeStamp_UseBy = fields[3];
 
-                        // Insert the row into the TimeBuckets table
-                        sql = "INSERT INTO TimeBuckets (BucketName, Time, TimeStamp_Created) VALUES (@BucketName, @Time, @TimeStamp_Created)";
+                        // Check if the row already exists in the TimeBuckets table
+                        string sql = "SELECT COUNT(*) FROM TimeBuckets WHERE ID = @ID";
 
                         using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                         {
-                            command.Parameters.AddWithValue("@BucketName", bucketName);
-                            command.Parameters.AddWithValue("@Time", time);
-                            command.Parameters.AddWithValue("@TimeStamp_Created", DateTime.Now.ToString("yyyy-MM-dd"));
+                            command.Parameters.AddWithValue("@ID", id);
 
-                            command.ExecuteNonQuery();
+                            int count = Convert.ToInt32(command.ExecuteScalar());
+
+                            if (count == 0)
+                            {
+                                // The row does not exist, insert it into the TimeBuckets table
+                                sql = "INSERT INTO TimeBuckets (ID, BucketName, Time, TimeStamp_UseBy) VALUES (@ID, @BucketName, @Time, @TimeStamp_UseBy)";
+
+                                using (SQLiteCommand insertCommand = new SQLiteCommand(sql, conn))
+                                {
+                                    insertCommand.Parameters.AddWithValue("@ID", id);
+                                    insertCommand.Parameters.AddWithValue("@BucketName", bucketName);
+                                    insertCommand.Parameters.AddWithValue("@Time", time);
+                                    insertCommand.Parameters.AddWithValue("@TimeStamp_UseBy", timeStamp_UseBy);
+
+                                    insertCommand.ExecuteNonQuery();
+                                }
+                            }
                         }
                     }
                 }
-            }
-
-            // Overwrite the CSV file with just the header
-            using (StreamWriter writer = new StreamWriter("TimeBuckets.csv"))
-            {
-                writer.WriteLine(header);
             }
 
             // Reload the time buckets into the ListBox
