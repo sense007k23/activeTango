@@ -186,47 +186,55 @@ namespace WinFormsActiveTango
             {
                 conn.Open();
 
-                // Read the CSV file
-                using (StreamReader reader = new StreamReader("TimeBuckets.csv"))
+                try
                 {
-                    reader.ReadLine(); // Skip the header
-
-                    while (!reader.EndOfStream)
+                    // Read the CSV file
+                    using (StreamReader reader = new StreamReader("TimeBuckets.csv"))
                     {
-                        string line = reader.ReadLine();
-                        string[] fields = line.Split(',');
+                        reader.ReadLine(); // Skip the header
 
-                        string id = fields[0];
-                        string bucketName = fields[1];
-                        string time = fields[2];
-                        string timeStamp_UseBy = fields[3];
-
-                        // Check if the row already exists in the TimeBuckets table
-                        string sql = "SELECT COUNT(*) FROM TimeBuckets WHERE ID = @ID";
-
-                        using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                        while (!reader.EndOfStream)
                         {
-                            command.Parameters.AddWithValue("@ID", id);
+                            string line = reader.ReadLine();
+                            string[] fields = line.Split(',');
 
-                            int count = Convert.ToInt32(command.ExecuteScalar());
+                            string id = fields[0];
+                            string bucketName = fields[1];
+                            string time = fields[2];
+                            string timeStamp_UseBy = fields[3];
 
-                            if (count == 0)
+                            // Check if the row already exists in the TimeBuckets table
+                            string sql = "SELECT COUNT(*) FROM TimeBuckets WHERE ID = @ID";
+
+                            using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                             {
-                                // The row does not exist, insert it into the TimeBuckets table
-                                sql = "INSERT INTO TimeBuckets (ID, BucketName, Time, TimeStamp_UseBy) VALUES (@ID, @BucketName, @Time, @TimeStamp_UseBy)";
+                                command.Parameters.AddWithValue("@ID", id);
 
-                                using (SQLiteCommand insertCommand = new SQLiteCommand(sql, conn))
+                                int count = Convert.ToInt32(command.ExecuteScalar());
+
+                                if (count == 0)
                                 {
-                                    insertCommand.Parameters.AddWithValue("@ID", id);
-                                    insertCommand.Parameters.AddWithValue("@BucketName", bucketName);
-                                    insertCommand.Parameters.AddWithValue("@Time", time);
-                                    insertCommand.Parameters.AddWithValue("@TimeStamp_UseBy", timeStamp_UseBy);
+                                    // The row does not exist, insert it into the TimeBuckets table
+                                    sql = "INSERT INTO TimeBuckets (ID, BucketName, Time, TimeStamp_UseBy) VALUES (@ID, @BucketName, @Time, @TimeStamp_UseBy)";
 
-                                    insertCommand.ExecuteNonQuery();
+                                    using (SQLiteCommand insertCommand = new SQLiteCommand(sql, conn))
+                                    {
+                                        insertCommand.Parameters.AddWithValue("@ID", id);
+                                        insertCommand.Parameters.AddWithValue("@BucketName", bucketName);
+                                        insertCommand.Parameters.AddWithValue("@Time", time);
+                                        insertCommand.Parameters.AddWithValue("@TimeStamp_UseBy", timeStamp_UseBy);
+
+                                        insertCommand.ExecuteNonQuery();
+                                    }
                                 }
                             }
                         }
                     }
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("The file is in use by another process. Please close the file and try again.");
+                    return;
                 }
             }
 
