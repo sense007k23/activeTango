@@ -218,6 +218,7 @@ namespace WinFormsActiveTango
             {
                 blockScreenForm.Hide();
                 blockScreenForm.ResetBlockTime(MinutesUntilBlock);
+                MinutesUntilBlock_updated = 1;
                 timer.Stop();
                 timer.Start();
             }
@@ -225,7 +226,7 @@ namespace WinFormsActiveTango
 
         private void UpdateCountdown()
         {
-            var remainingTime = blockScreenForm.BlockTime - DateTime.Now;
+            var remainingTime = blockScreenForm.BlockTime - DateTime.Now;           
             countdownLabel.Text = remainingTime.ToString(@"hh\:mm\:ss");
 
             if (remainingTime.TotalMinutes < 1)
@@ -251,6 +252,7 @@ namespace WinFormsActiveTango
         {
             if (int.TryParse(minutesBox.Text, out int newMinutes))
             {
+                MinutesUntilBlock_updated = (blockScreenForm.BlockTime - DateTime.Now).Minutes;
                 MinutesUntilBlock_updated += newMinutes;
                 blockScreenForm.UpdateTimer(MinutesUntilBlock_updated);
                 timer.Stop();
@@ -268,7 +270,7 @@ namespace WinFormsActiveTango
             if (timeBucketsListBox.SelectedItem != null)
             {
                 TimeBucket selectedTimeBucket = (TimeBucket)timeBucketsListBox.SelectedItem;
-
+                MinutesUntilBlock_updated = (blockScreenForm.BlockTime - DateTime.Now).Minutes;
                 // Add the selected number of minutes to the countdown timer
                 MinutesUntilBlock_updated += int.Parse(selectedTimeBucket.Time);
                 blockScreenForm.UpdateTimer(MinutesUntilBlock_updated);

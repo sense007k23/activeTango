@@ -83,7 +83,8 @@ namespace WinFormsActiveTango
                 using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                 {
                     command.Parameters.AddWithValue("@Task", taskTextBox.Text);
-                    command.Parameters.AddWithValue("@Category", categoryListBox.SelectedItem.ToString());
+                    string category = categoryListBox.SelectedItem != null ? categoryListBox.SelectedItem.ToString() : "Other";
+                    command.Parameters.AddWithValue("@Category", category);
                     command.Parameters.AddWithValue("@FocusLevel", focusLevelRadioButtons.ToList().FindIndex(rb => rb.Checked) + 1);
                     command.Parameters.AddWithValue("@MinutesSpent", minutesSpentTextBox.Text);
 

@@ -54,6 +54,9 @@ namespace WinFormsActiveTango
                     }
                 }
             }
+
+            // Sort the tasks based on due date
+            todoDataGridView.Sort(todoDataGridView.Columns["DueDate"], ListSortDirection.Descending);
         }
 
         private void InitializeTasksTab()

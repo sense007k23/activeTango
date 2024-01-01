@@ -16,7 +16,7 @@ namespace WinFormsActiveTango
         private DataGridView dataGridView1;
         private TabPage tabPage;
         private ListBox listBox1;
-
+        private Button exportButton;
 
         public ApplicationsTab(TabPage tabPage)
         {
@@ -51,6 +51,46 @@ namespace WinFormsActiveTango
             timer.Interval = 3000; // 3sec
             timer.Tick += Timer_Tick;
             timer.Start();
+
+            exportButton = new Button { Text = "Export", Location = new Point(520, 410), Size = new Size(480, 30) };
+            exportButton.Click += ExportButton_Click;
+            tabPage.Controls.Add(exportButton);
+
+
+        }
+
+        private void ExportButton_Click(object sender, EventArgs e)
+        {
+            using (SQLiteConnection conn = new SQLiteConnection("Data Source=applications.db;Version=3;"))
+            {
+                conn.Open();
+
+                string sql = "SELECT ID, Application, InFocus, Screen, DATE(Timestamp) as Date FROM Applications";
+
+                using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                {
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        using (StreamWriter writer = new StreamWriter("Applications.csv"))
+                        {
+                            // Write the header
+                            writer.WriteLine("ID,Application,InFocus,Screen,Date");
+
+                            // Write the data
+                            while (reader.Read())
+                            {
+                                string id = reader["ID"].ToString();
+                                string application = reader["Application"].ToString().Replace(",", ";");
+                                string inFocus = reader["InFocus"].ToString();
+                                string screen = reader["Screen"].ToString();
+                                string date = reader["Date"].ToString();
+
+                                writer.WriteLine($"{id},{application},{inFocus},{screen},{date}");
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void Timer_Tick(object sender, EventArgs e)
