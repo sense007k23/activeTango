@@ -43,6 +43,27 @@ namespace WinFormsActiveTango
         {
             InitializeComponent();
 
+            using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
+            {
+                conn.Open();
+
+                string sql = @"CREATE TABLE IF NOT EXISTS TimeBuckets 
+                       (
+                           ID INTEGER PRIMARY KEY AUTOINCREMENT, 
+                           BucketName TEXT, 
+                           Time TEXT, 
+                           Used INTEGER DEFAULT 0,
+                           TimeStamp_Created TEXT,
+                           TimeStamp_Used TEXT
+                       )";
+
+                using (SQLiteCommand command = new SQLiteCommand(sql, conn))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+
+
             this.Text = "Action Tango";
             this.WindowState = FormWindowState.Maximized;
             this.Icon = new Icon("favicon.ico");
@@ -126,6 +147,8 @@ namespace WinFormsActiveTango
             timer = new System.Windows.Forms.Timer { Interval = 1000 };
             timer.Tick += (sender, e) => UpdateCountdown();
             timer.Start();
+
+            
         }
 
         private void LoadTimeBuckets()
@@ -136,7 +159,7 @@ namespace WinFormsActiveTango
             {
                 conn.Open();
 
-                string sql = "SELECT * FROM TimeBuckets";
+                string sql = "SELECT * FROM TimeBuckets WHERE Used = 0 AND date(TimeStamp_Created) = date('now')";
 
                 using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                 {
@@ -187,12 +210,13 @@ namespace WinFormsActiveTango
                         string time = fields[1];
 
                         // Insert the row into the TimeBuckets table
-                        sql = "INSERT INTO TimeBuckets (BucketName, Time) VALUES (@BucketName, @Time)";
+                        sql = "INSERT INTO TimeBuckets (BucketName, Time, TimeStamp_Created) VALUES (@BucketName, @Time, @TimeStamp_Created)";
 
                         using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                         {
                             command.Parameters.AddWithValue("@BucketName", bucketName);
                             command.Parameters.AddWithValue("@Time", time);
+                            command.Parameters.AddWithValue("@TimeStamp_Created", DateTime.Now.ToString("yyyy-MM-dd"));
 
                             command.ExecuteNonQuery();
                         }
@@ -270,30 +294,31 @@ namespace WinFormsActiveTango
             if (timeBucketsListBox.SelectedItem != null)
             {
                 TimeBucket selectedTimeBucket = (TimeBucket)timeBucketsListBox.SelectedItem;
-                MinutesUntilBlock_updated = (blockScreenForm.BlockTime - DateTime.Now).Minutes;
+
                 // Add the selected number of minutes to the countdown timer
                 MinutesUntilBlock_updated += int.Parse(selectedTimeBucket.Time);
                 blockScreenForm.UpdateTimer(MinutesUntilBlock_updated);
                 timer.Stop();
                 timer.Start();
 
-                // Delete the selected item from the TimeBuckets table
+                // Mark the selected item as used in the TimeBuckets table
                 using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
                 {
                     conn.Open();
 
-                    string sql = "DELETE FROM TimeBuckets WHERE ID = @ID";
+                    string sql = "UPDATE TimeBuckets SET Used = 1, TimeStamp_Used = @TimeStamp_Used WHERE ID = @ID";
 
                     using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                     {
                         command.Parameters.AddWithValue("@ID", selectedTimeBucket.ID);
+                        command.Parameters.AddWithValue("@TimeStamp_Used", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
                         command.ExecuteNonQuery();
                     }
                 }
 
-                // Remove the selected item from the ListBox
-                timeBucketsListBox.Items.Remove(selectedTimeBucket);
+                // Reload the time buckets
+                LoadTimeBuckets();
             }
         }
 

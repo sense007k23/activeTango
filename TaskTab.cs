@@ -113,7 +113,8 @@ namespace WinFormsActiveTango
                             todoDataGridView.Rows[rowIndex].Tag = reader["ID"];
                         }
                     }
-                }
+                }                
+
             }
 
             todoDataGridView.CellEndEdit += todoDataGridView_CellEndEdit;
