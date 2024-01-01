@@ -130,6 +130,8 @@ namespace WinFormsActiveTango
 
         private void LoadTimeBuckets()
         {
+            timeBucketsListBox.Items.Clear();
+
             using (SQLiteConnection conn = new SQLiteConnection("Data Source=tasks.db;Version=3;"))
             {
                 conn.Open();
@@ -142,9 +144,13 @@ namespace WinFormsActiveTango
                     {
                         while (reader.Read())
                         {
-                            string bucketName = reader["BucketName"].ToString();
-                            string time = reader["Time"].ToString();
-                            timeBucketsListBox.Items.Add(bucketName + "(" + time + ")");
+                            TimeBucket timeBucket = new TimeBucket
+                            {
+                                ID = (long)reader["ID"],
+                                BucketName = reader["BucketName"].ToString(),
+                                Time = reader["Time"].ToString()
+                            };
+                            timeBucketsListBox.Items.Add(timeBucket);
                         }
                     }
                 }
@@ -261,12 +267,10 @@ namespace WinFormsActiveTango
         {
             if (timeBucketsListBox.SelectedItem != null)
             {
-                string selectedItem = timeBucketsListBox.SelectedItem.ToString();
-                string bucketName = selectedItem.Substring(0, selectedItem.IndexOf("("));
-                string time = selectedItem.Substring(selectedItem.IndexOf("(") + 1, selectedItem.IndexOf(")") - selectedItem.IndexOf("(") - 1);
+                TimeBucket selectedTimeBucket = (TimeBucket)timeBucketsListBox.SelectedItem;
 
                 // Add the selected number of minutes to the countdown timer
-                MinutesUntilBlock_updated += int.Parse(time);
+                MinutesUntilBlock_updated += int.Parse(selectedTimeBucket.Time);
                 blockScreenForm.UpdateTimer(MinutesUntilBlock_updated);
                 timer.Stop();
                 timer.Start();
@@ -276,19 +280,18 @@ namespace WinFormsActiveTango
                 {
                     conn.Open();
 
-                    string sql = "DELETE FROM TimeBuckets WHERE BucketName = @BucketName AND Time = @Time";
+                    string sql = "DELETE FROM TimeBuckets WHERE ID = @ID";
 
                     using (SQLiteCommand command = new SQLiteCommand(sql, conn))
                     {
-                        command.Parameters.AddWithValue("@BucketName", bucketName);
-                        command.Parameters.AddWithValue("@Time", time);
+                        command.Parameters.AddWithValue("@ID", selectedTimeBucket.ID);
 
                         command.ExecuteNonQuery();
                     }
                 }
 
                 // Remove the selected item from the ListBox
-                timeBucketsListBox.Items.Remove(selectedItem);
+                timeBucketsListBox.Items.Remove(selectedTimeBucket);
             }
         }
 
