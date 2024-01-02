@@ -302,7 +302,7 @@ namespace WinFormsActiveTango
             if (timeBucketsListBox.SelectedItem != null)
             {
                 TimeBucket selectedTimeBucket = (TimeBucket)timeBucketsListBox.SelectedItem;
-
+                MinutesUntilBlock_updated = (blockScreenForm.BlockTime - DateTime.Now).Minutes;
                 // Add the selected number of minutes to the countdown timer
                 MinutesUntilBlock_updated += int.Parse(selectedTimeBucket.Time);
                 blockScreenForm.UpdateTimer(MinutesUntilBlock_updated);
